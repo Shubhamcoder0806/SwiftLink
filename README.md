@@ -1,144 +1,128 @@
-# 🔗 URL Shortener API
+# URL Shortener
 
-A RESTful URL Shortener service built using Spring Boot that converts long URLs into compact, shareable links and redirects users to the original destination.
+A simple URL shortener built with Spring Boot, MariaDB/MySQL, and a plain HTML/JS frontend. Users can submit a long URL and get back a short link that redirects to the original address.
 
-## 📖 Overview
+## Tech Stack
 
-This project provides a scalable URL shortening solution using a layered Spring Boot architecture. Users can submit long URLs and receive a unique short URL that can be used for redirection.
+- **Backend:** Java, Spring Boot
+- **Database:** MariaDB (MySQL-compatible)
+- **ORM:** Spring Data JPA / Hibernate
+- **Frontend:** HTML, CSS, vanilla JavaScript (served from Spring Boot's `static` folder)
 
-## 🚀 Features
+## Features
 
-- Shorten long URLs
-- Automatic short code generation
-- Redirect to original URL
-- REST API architecture
-- Exception handling
-- DTO-based request/response handling
-- Layered architecture following Spring Boot best practices
-- Database persistence
+- Shorten any long URL into a random 6-character code
+- Redirect from the short URL to the original URL
+- Tracks click count per short URL
+- Clean error handling for invalid/unknown short codes
 
-## 🏗️ Architecture
+## Project Structure
 
-```text
-Controller
-    ↓
-Service
-    ↓
-Repository
-    ↓
-Database
+```
+src/
+├── main/
+│   ├── java/com/example/Url_Shortner/
+│   │   ├── UrlShortnerApplication.java   # Main entry point
+│   │   ├── controller/                   # REST API endpoints
+│   │   ├── service/                      # Business logic (short code generation, lookups)
+│   │   ├── repository/                   # Database access (Spring Data JPA)
+│   │   ├── entity/                       # Database table mapping (UrlMapping)
+│   │   ├── dto/                          # Request/response objects
+│   │   └── exception/                    # Custom exceptions + global error handler
+│   └── resources/
+│       ├── application.properties        # Database and server config
+│       └── static/
+│           └── index.html                # Simple frontend
 ```
 
-## 🛠️ Tech Stack
+## Prerequisites
 
-- Java 17+
-- Spring Boot
-- Spring Data JPA
+- Java 17 or higher
 - Maven
-- MySQL / PostgreSQL (depending on configuration)
-- REST APIs
+- MariaDB or MySQL installed and running
 
-## 📂 Project Structure
+## Setup
 
-```text
-src/main/java/com/example/Url_Shortner
-
-├── controller
-├── dto
-├── entity
-├── exception
-├── repository
-├── service
-└── UrlShortnerApplication.java
-```
-
-## ⚙️ Installation
-
-### Clone Repository
-
+**1. Clone the repository**
 ```bash
 git clone https://github.com/Shubhamcoder0806/Url_Shortner.git
 cd Url_Shortner
 ```
 
-### Configure Database
+**2. Create the database**
 
-Update your `application.properties`:
-
-```properties
-spring.datasource.url=YOUR_DATABASE_URL
-spring.datasource.username=YOUR_USERNAME
-spring.datasource.password=YOUR_PASSWORD
-```
-
-### Run Project
-
+Log into MySQL/MariaDB:
 ```bash
-./mvnw spring-boot:run
+mysql -u root -p
+```
+Then run:
+```sql
+CREATE DATABASE url_shortener_db;
 ```
 
-Or
+**3. Configure database credentials**
 
+Open `src/main/resources/application.properties` and update:
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/url_shortener_db
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+```
+
+**4. Run the application**
+
+Using Maven:
 ```bash
 mvn spring-boot:run
 ```
+Or run `UrlShortnerApplication.java` directly from your IDE.
 
-## 📡 API Endpoints
+The app will start on `http://localhost:8080`. Hibernate will auto-create the required database table on first run.
 
-### Create Short URL
+## Usage
 
-```http
-POST /api/shorten
-```
+**Via the frontend**
 
-Request:
+Open `http://localhost:8080` in your browser, paste a long URL, and click Shorten.
 
-```json
-{
-  "url": "https://www.example.com"
-}
+**Via the API directly**
+
+Create a short URL:
+```bash
+curl -X POST http://localhost:8080/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"originalUrl": "https://example.com"}'
 ```
 
 Response:
-
 ```json
 {
-  "shortUrl": "http://localhost:8080/abc123"
+  "shortUrl": "http://localhost:8080/api/abc123",
+  "originalUrl": "https://example.com"
 }
 ```
 
-### Redirect URL
-
-```http
-GET /{shortCode}
+Visit the short URL to be redirected to the original:
+```bash
+curl -v http://localhost:8080/api/abc123
 ```
 
-Redirects users to the original URL.
+## API Endpoints
 
-## 🎯 Learning Outcomes
+| Method | Endpoint            | Description                          |
+|--------|----------------------|---------------------------------------|
+| POST   | `/api/shorten`       | Create a short URL from a long URL    |
+| GET    | `/api/{shortCode}`   | Redirect to the original URL          |
 
-- Spring Boot Fundamentals
-- REST API Development
-- DTO Pattern
-- JPA & Database Integration
-- Exception Handling
-- Layered Architecture Design
+## Notes
 
-## 🔮 Future Improvements
+- `spring.jpa.hibernate.ddl-auto=update` is used for development — the database schema updates automatically to match the code. Switch to `validate` (or use a migration tool like Flyway) before production use.
+- Never commit real database credentials to a public repository — use environment variables or a `.env` file excluded via `.gitignore` for production deployments.
 
-- User Authentication
-- URL Analytics
-- QR Code Generation
-- Custom Short URLs
-- Click Tracking Dashboard
-- URL Expiration Support
+## Roadmap
 
-## 👨‍💻 Author
-
-**Shubham Mishra**
-
-GitHub: https://github.com/Shubhamcoder0806
-
-## ⭐ Star the Repository
-
-If you found this project useful, consider giving it a star.
+- User authentication (JWT-based)
+- Per-user link management dashboard
+- Custom short codes
+- Redis caching for high-traffic redirects
+- React frontend
